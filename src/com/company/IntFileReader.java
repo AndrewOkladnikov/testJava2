@@ -14,8 +14,8 @@ public class IntFileReader implements ICustomFileReader {
         {
             throw new NullPointerException(); // узнать какой exception нужен
         }
-        this.bufferedReader = new BufferedReader(new FileReader(file));
-        this.maxSize = maxSize;
+        bufferedReader = new BufferedReader(new FileReader(file));
+        maxSize = maxSize;
     }
 
     public boolean isFileFinished()
@@ -23,7 +23,7 @@ public class IntFileReader implements ICustomFileReader {
         return isFinished;
     }
 
-    public Integer getNext() throws IOException {
+    public String getNext() throws IOException {
         var stringBuilder = new StringBuilder();
 
         boolean isFaulted = false;
@@ -57,11 +57,15 @@ public class IntFileReader implements ICustomFileReader {
 
             isFaulted = true;
         }
-
-        Integer result = null;
+        String result1= null;
+        //Integer result = null;
         try {
             var resultString = stringBuilder.toString();
-            result = Integer.parseInt(resultString);
+            if (resultString == "")
+            {
+                return null;
+            }
+            result1 = resultString;
         }
         catch (Exception ex)
         {
@@ -74,6 +78,6 @@ public class IntFileReader implements ICustomFileReader {
             return null;
         }
 
-        return result;
+        return result1;
     }
 }

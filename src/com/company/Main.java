@@ -6,98 +6,88 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        var input = new File("strings.txt");
-        ICustomFileReader reader = new IntFileReader(input, null);
+        int fileCount=4;
+        int partSize = 5000;
 
-        while (!reader.isFileFinished())
+        // стирает предыдущий файл
+        FileWriter fwr = new FileWriter("Result.txt", false);
+        fwr.close();
+        /*     Здесь меняем        */
+        //String pathStr1 = "1_sort.txt";
+        //String pathStr2 = "2_sort.txt";
+        String pathStr1 = "str1_sort.txt";
+        String pathStr2 = "str2_sort.txt";
+        //String pathStr1 = "128MbSorted.txt";
+        //String pathStr2 = "256MbSorted.txt";
+
+        mergeArrayNew(pathStr1,pathStr2,fileCount,partSize);
+     }
+
+    private static ArrayList<String> fillBuffer(ICustomFileReader reader, int size) throws IOException {
+        var valueList = new ArrayList<String>();
+        while (!reader.isFileFinished() && valueList.size()<size)
         {
-            var number = reader.getNext();
-            if (number == null && reader.isFileFinished())
-            {
-                break;
-            }
-            if (number != null)
-            {
-                System.out.println(number);
-            }
-        }
-        // var outputFile = GetOutputFileFromArgs(args);
-        // var inputFiles = GetInputFilesFromArgs(args);
-
-        //outputFile = MergeFiles(inputFiles, SortOrder.ASCENDING);
-    }
-
-    private static ArrayList<File> GetInputFilesFromArgs(String[] args) {
-        throw new UnsupportedOperationException();        
-    }
-
-    private static File GetOutputFileFromArgs(String[] args) {
-        throw new UnsupportedOperationException();
-    }
-
-    private static File MergeFiles(ArrayList<File> inputFiles, SortOrder sortOrder) {
-        if (inputFiles.size() == 1)
-        {
-            return inputFiles.get(0);
-        }
-        var pairs = SplitByPairs(inputFiles);
-        var sortedFiles = new ArrayList<File>();
-        for (var pair: pairs) {
-            var sortedFile = MergeSortedFiles(pair[0], pair[1], sortOrder);
-            sortedFiles.add(sortedFile);
-        }
-        return MergeFiles(sortedFiles, sortOrder);
-    }
-
-    private static ArrayList<File[]> SplitByPairs(ArrayList<File> inputFiles) {
-        throw new UnsupportedOperationException();
-    }
-
-    private static File MergeSortedFiles(File firstFile, File secondFile, SortOrder sortOrder) {
-        throw new UnsupportedOperationException();
-       /* String filename = GenerateFileName(firstFile, secondFile);
-        var outputFile = new File(filename);
-        int firstFileCurrentValue = GetNextValue(firstFile);
-        int secondFileCurrentValue = GetNextValue(secondFile);
-
-        if (sortOrder == SortOrder.ASCENDING)
-        {
-            while (firstFile.NotFinished || secondFile.NotFinished) {
-                if (firstFileCurrentValue < secondFileCurrentValue) {
-                    outputFile.Write(firstFileCurrentValue);
-                    firstFileCurrentValue = GetNextValue(firstFile);
-                } else {
-                    outputFile.Write(secondFileCurrentValue);
-                    secondFileCurrentValue = GetNextValue(secondFile);
+            try{
+                var value = reader.getNext();
+                if (value == null && reader.isFileFinished())
+                {
+                    break;
+                }
+                if (value != null)
+                {
+                    valueList.add(value);
                 }
             }
-
-            var remainingValues = firstFile.NotFinished ? firstFile.GetRemainingValues : secondFile.GetRemainingValues;
-            outputFile.AppendRemainingValues(remainingValues);
-        }
-
-        // TODO: убрать дублирование с ASCENDING
-        if (sortOrder == SortOrder.DESCENDING)
-        {
-            while (firstFile.NotFinished || secondFile.NotFinished) {
-                if (firstFileCurrentValue > secondFileCurrentValue) {
-                    outputFile.Write(firstFileCurrentValue);
-                    firstFileCurrentValue = GetNextValue(firstFile);
-                } else {
-                    outputFile.Write(secondFileCurrentValue);
-                    secondFileCurrentValue = GetNextValue(secondFile);
-                }
+            catch (NumberFormatException e){
+                System.out.println(e.getMessage());
             }
 
-            var remainingValues = firstFile.NotFinished ? firstFile.GetRemainingValues : secondFile.GetRemainingValues;
-            outputFile.AppendRemainingValues(remainingValues);
-
         }
 
-        return outputFile; */
+        return valueList;
     }
 
-    public static int [] sortArray(int[] arrayA){ // сортировка Массива который передается в функцию
+    private static ArrayList<String> fillIntBuffer(ICustomFileReader reader,int size) throws IOException {
+        var numList = new ArrayList<String>();
+        int[] buffer = new int[size];
+        while (!reader.isFileFinished() && numList.size()<size)
+        {
+            try{
+                var number = reader.getNext();
+                if (number == null && reader.isFileFinished())
+                {
+                    break;
+                }
+                if (number != null)
+                {
+                    numList.add(number);
+                }
+            }
+            catch (NumberFormatException e){
+                System.out.println(e.getMessage());
+            }
+
+        }
+        //int j = 0;
+        //for(var v:numList){
+        //    buffer[j++] = v;
+
+       // }
+
+        return numList;
+    }   //  Не используется
+
+    private static ArrayList<String> GetInputFilesFromArgs(String[] args) {
+        ArrayList<String> arrOfFiles = new ArrayList<>();
+        arrOfFiles.add("str1_sort.txt");
+        arrOfFiles.add("str2_sort.txt");
+        arrOfFiles.add("256MbSorted.txt");
+        arrOfFiles.add("strings.txt");
+
+        return arrOfFiles;
+    }
+
+    public static Integer[] sortArray(Integer[] arrayA){ // сортировка Массива который передается в функцию
 
         if (arrayA == null)  // проверяем не нулевой ли он?
         {
@@ -108,7 +98,7 @@ public class Main {
             return arrayA; // возврат в рекурсию в строки ниже см комменты.
         }
         // копируем левую часть от начала до середины
-        int [] arrayB = new int[arrayA.length / 2];
+        Integer[] arrayB = new Integer[arrayA.length / 2];
         System.arraycopy(arrayA, 0, arrayB, 0, arrayA.length / 2);
 
         // копируем правую часть от середины до конца массива, вычитаем из длины первую часть
@@ -119,47 +109,145 @@ public class Main {
         // пока не дойдет до 1 элемента в массиве, после чего вернется в строку и будет искать второй такой же,
         // точнее правую часть от него и опять вернет его назад
         arrayB = sortArray(arrayB); // левая часть возврат из рекурсии строкой return arrayA;
-        arrayC = sortArray(arrayC); // правая часть возврат из рекурсии строкой return arrayA;
+        //arrayC = sortArray(arrayC); // правая часть возврат из рекурсии строкой return arrayA;
 
         // далее опять рекурсия возврата слияния двух отсортированных массивов
-        return mergeArray(arrayB, arrayC);
+        //return mergeArray(arrayB, arrayC);
+        return  null;
     }
 
-    public static int [] mergeArray(int [] arrayА, int [] arrayB) {
+    public static void mergeArrayNew(String str1, String str2,int fileCount,int partSize) throws IOException {
+        String[] bufA = new String[fileCount];
+        ICustomFileReader[] fileReaders = new ICustomFileReader[fileCount];
 
-        int [] arrayC = new int [arrayА.length + arrayB.length];
-        int positionA = 0, positionB = 0;
+        int[] partPositions = new int[fileCount];
+        ArrayList<ArrayList<String>> currentFileParts = new ArrayList<>();
 
-        for (int i = 0; i < arrayC.length; i++) {
-            if (positionA == arrayА.length){
-                arrayC[i] = arrayB[positionB];
-                positionB++;
-            } else if (positionB == arrayB.length) {
-                arrayC[i] = arrayА[positionA];
-                positionA++;
-            } else if (arrayА[ positionA] < arrayB[ positionB]) {
-                arrayC[i] = arrayА[positionA];
-                positionA++;
-            } else {
-                arrayC[i] = arrayB[ positionB];
-                positionB++;
+        ArrayList<String> arrOfData = GetInputFilesFromArgs(bufA);
+        for(int i=0; i < arrOfData.size() ; i++){
+            var file = new File(arrOfData.get(i));
+            var reader = new StringFileReader(file, null);
+            fileReaders[i]=reader;
+            currentFileParts.add(fillBuffer(fileReaders[i],partSize));
+            partPositions[i]=0;
+        }
+
+        ArrayList<String> resultArr = new ArrayList<String>();
+        while(true) {
+            for (int i= 0; i<fileCount; i++) {
+                if (fileReaders[i].isFileFinished()) {
+                    if (currentFileParts.get(i) != null && partPositions[i] == currentFileParts.get(i).size()) {
+                        currentFileParts.set(i, null);
+                    }
+
+                    continue;
+                }
+                boolean partHasEnded = partPositions[i] == currentFileParts.get(i).size();
+                if (partHasEnded) {
+                    var newFilePart = fillBuffer(fileReaders[i], partSize);
+                    currentFileParts.set(i, newFilePart);
+                    partPositions[i] = 0;
+                }
+            }
+
+            while (!isAnyPartsFinished(fileCount, partPositions, currentFileParts))
+            {
+                var minimum = GetMinimum(currentFileParts, partPositions);
+                if (minimum == null)
+                {
+                    break;
+                }
+                resultArr.add(minimum.getValue());
+                partPositions[minimum.getKey()]++;
+            }
+
+            writeToTxt(resultArr, "Result.txt");
+            resultArr.clear();
+
+            if (allFilesAreFinished(fileReaders) && allPartsAreFinished(currentFileParts, partPositions))
+            {
+                break;
+            }
+         }
+    }
+
+    private static boolean allPartsAreFinished(ArrayList<ArrayList<String>> currentFileParts, int[] partPositions) {
+        boolean allPartsFinished = true;
+        for (int i = 0; i< partPositions.length; i++)
+        {
+            if (currentFileParts.get(i) != null && partPositions[i] != currentFileParts.get(i).size())
+            {
+                allPartsFinished = false;
             }
         }
-        return arrayC;
+        return allPartsFinished;
     }
 
-    public static void writeToTxt ( int[] buf,String filePathName) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(new File(filePathName)));
-        for (int i = 0; i < buf.length; i++) {
-
-            //writer.write(String.valueOf(array[i]));
-            //writer.write(" ");
-            writer.write(String.valueOf(buf[i]));
-
-            writer.write("\n");
+    private static boolean allFilesAreFinished(ICustomFileReader[] fileReaders) {
+        boolean allFilesFinished = true;
+        for (int i = 0; i< fileReaders.length; i++)
+        {
+            if (!fileReaders[i].isFileFinished())
+            {
+                allFilesFinished = false;
+            }
         }
-        writer.flush();
+
+        return allFilesFinished;
+    }
+
+    private static boolean isAnyPartsFinished(int fileCount, int[] partPositions, ArrayList<ArrayList<String>> currentFileParts) {
+        boolean anyPartsFinished = false;
+        for (int i = 0; i< fileCount; i++)
+        {
+            if (currentFileParts.get(i) != null && partPositions[i] == currentFileParts.get(i).size())
+            {
+                anyPartsFinished = true;
+            }
+        }
+        return anyPartsFinished;
+    }
+
+    private static Pair<Integer, String> GetMinimum(ArrayList<ArrayList<String>> currentFileParts, int[] partPositions) {
+            Pair<Integer, String> minimum = null;
+
+            for (int i=0; i< currentFileParts.size(); i++)
+            {
+                if (currentFileParts.get(i) != null)
+                {
+                    minimum = new Pair(i, currentFileParts.get(i).get(partPositions[i]));
+                    break;
+                }
+            }
+
+            if (minimum == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < currentFileParts.size(); i++)
+            {
+                if (currentFileParts.get(i) == null)
+                {
+                    continue;
+                }
+                var currentPartValue = currentFileParts.get(i).get(partPositions[i]);
+                if (currentPartValue.compareTo(minimum.getValue()) < 1)
+                {
+                    minimum = new Pair(i, currentPartValue);
+                }
+            }
+            return minimum;
+        }
+
+
+    public static void writeToTxt ( ArrayList<String> buf,String filePathName) throws IOException {
+        //BufferedWriter writer = new BufferedWriter(new FileWriter(new File(filePathName)));
+        FileWriter fwr = new FileWriter(filePathName,true);
+        for (var v:buf) {
+            fwr.write(v);
+            fwr.write("\n");
+        }
+        fwr.close();
     }
 }
-//10, 12, 13, 16 ,17, 25, 51, 111, 119, 138, 184 ,211
-//0, 2, 3, 5, 6 ,7, 11, 19, 21, 38, 84 ,125
