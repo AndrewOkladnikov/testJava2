@@ -6,21 +6,21 @@ import java.util.ArrayList;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        int fileCount=4;
+
         int partSize = 5000;
-
-        // стирает предыдущий файл
-        FileWriter fwr = new FileWriter("Result.txt", false);
+        String outputFile="";
+        for(int i=0;i<args.length;i++)
+        {
+            if(args[i].getBytes()[0]!='-'){
+                outputFile = args[i];
+                break;
+            };
+        }
+        FileWriter fwr = new FileWriter(outputFile, false);
         fwr.close();
-        /*     Здесь меняем        */
-        //String pathStr1 = "1_sort.txt";
-        //String pathStr2 = "2_sort.txt";
-        String pathStr1 = "str1_sort.txt";
-        String pathStr2 = "str2_sort.txt";
-        //String pathStr1 = "128MbSorted.txt";
-        //String pathStr2 = "256MbSorted.txt";
+        // стирает предыдущий файл
 
-        mergeArrayNew(pathStr1,pathStr2,fileCount,partSize);
+        mergeArray(args,partSize);
      }
 
     private static ArrayList<String> fillBuffer(ICustomFileReader reader, int size) throws IOException {
@@ -47,42 +47,21 @@ public class Main {
         return valueList;
     }
 
-    private static ArrayList<String> fillIntBuffer(ICustomFileReader reader,int size) throws IOException {
-        var numList = new ArrayList<String>();
-        int[] buffer = new int[size];
-        while (!reader.isFileFinished() && numList.size()<size)
-        {
-            try{
-                var number = reader.getNext();
-                if (number == null && reader.isFileFinished())
-                {
-                    break;
-                }
-                if (number != null)
-                {
-                    numList.add(number);
-                }
-            }
-            catch (NumberFormatException e){
-                System.out.println(e.getMessage());
-            }
-
-        }
-        //int j = 0;
-        //for(var v:numList){
-        //    buffer[j++] = v;
-
-       // }
-
-        return numList;
-    }   //  Не используется
-
     private static ArrayList<String> GetInputFilesFromArgs(String[] args) {
         ArrayList<String> arrOfFiles = new ArrayList<>();
-        arrOfFiles.add("str1_sort.txt");
-        arrOfFiles.add("str2_sort.txt");
-        arrOfFiles.add("256MbSorted.txt");
-        arrOfFiles.add("strings.txt");
+        int fileCount=2;
+        String outputFile="";
+        for(int i=0;i<args.length;i++)
+        {
+            if(args[i].getBytes()[0]!='-'){
+                outputFile = args[i];
+                fileCount = args.length - 1-i;
+                break;
+            };
+        }
+        for(int i=1;i<=fileCount;i++){
+            arrOfFiles.add(args[args.length-i]);
+        }
 
         return arrOfFiles;
     }
@@ -116,14 +95,31 @@ public class Main {
         return  null;
     }
 
-    public static void mergeArrayNew(String str1, String str2,int fileCount,int partSize) throws IOException {
+    public static void mergeArray(String[] args,int partSize) throws IOException {
+            int fileCount=2;
+            boolean asc=true;
+            String outputFile="";
+            for(int i=0;i<args.length;i++)
+            {
+                if(args[i].getBytes()[0]!='-'){
+                    outputFile = args[i];
+                    fileCount = args.length - 1-i;
+                    break;
+                };
+            }
+            if(args[0].compareTo("-d")==0||args[1].compareTo("-d")==0){
+                asc = false;
+            }
+            else{
+                asc = true;
+            }
         String[] bufA = new String[fileCount];
         ICustomFileReader[] fileReaders = new ICustomFileReader[fileCount];
 
         int[] partPositions = new int[fileCount];
         ArrayList<ArrayList<String>> currentFileParts = new ArrayList<>();
 
-        ArrayList<String> arrOfData = GetInputFilesFromArgs(bufA);
+        ArrayList<String> arrOfData = GetInputFilesFromArgs(args);
         for(int i=0; i < arrOfData.size() ; i++){
             var file = new File(arrOfData.get(i));
             var reader = new StringFileReader(file, null);
@@ -152,16 +148,21 @@ public class Main {
 
             while (!isAnyPartsFinished(fileCount, partPositions, currentFileParts))
             {
-                var minimum = GetMinimum(currentFileParts, partPositions);
-                if (minimum == null)
+                Pair<Integer,String> minmax ;
+                if(asc==true){
+                    minmax = GetMinimum(currentFileParts, partPositions);
+                }else {
+                    minmax = GetMaximum(currentFileParts, partPositions);
+                }
+                if (minmax == null)
                 {
                     break;
                 }
-                resultArr.add(minimum.getValue());
-                partPositions[minimum.getKey()]++;
+                resultArr.add(minmax.getValue());
+                partPositions[minmax.getKey()]++;
             }
 
-            writeToTxt(resultArr, "Result.txt");
+            writeToTxt(resultArr, outputFile);
             resultArr.clear();
 
             if (allFilesAreFinished(fileReaders) && allPartsAreFinished(currentFileParts, partPositions))
@@ -240,9 +241,41 @@ public class Main {
             return minimum;
         }
 
+    private static Pair<Integer, String> GetMaximum(ArrayList<ArrayList<String>> currentFileParts, int[] partPositions) {
+        Pair<Integer, String> maximum = null;
+
+        for (int i=0; i< currentFileParts.size(); i++)
+        {
+            if (currentFileParts.get(i) != null)
+            {
+                maximum = new Pair(i, currentFileParts.get(i).get(partPositions[i]));
+                break;
+            }
+        }
+
+        if (maximum == null)
+        {
+            return null;
+        }
+
+        for (int i = 0; i < currentFileParts.size(); i++)
+        {
+            if (currentFileParts.get(i) == null)
+            {
+                continue;
+            }
+            var currentPartValue = currentFileParts.get(i).get(partPositions[i]);
+            if (currentPartValue.compareTo(maximum.getValue()) > 0)
+            {
+                maximum = new Pair(i, currentPartValue);
+            }
+        }
+        return maximum;
+    }
 
     public static void writeToTxt ( ArrayList<String> buf,String filePathName) throws IOException {
         //BufferedWriter writer = new BufferedWriter(new FileWriter(new File(filePathName)));
+
         FileWriter fwr = new FileWriter(filePathName,true);
         for (var v:buf) {
             fwr.write(v);
